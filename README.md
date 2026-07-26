@@ -1,6 +1,6 @@
 # MongoGuard
 
-Production readiness assessment tool for MongoDB replica sets. Measures how your specific deployment behaves under failure conditions — not how the documentation says it should.
+Production readiness assessment tool for MongoDB replica sets. Measures how your specific deployment behaves under failure conditions, not how the documentation says it should.
 
 Existing monitoring tools alert you after problems occur. MongoGuard causes the problems deliberately, measures the response, and tells you what to fix before you go live.
 
