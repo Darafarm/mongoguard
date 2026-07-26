@@ -1,0 +1,21 @@
+services:
+  mongo-primary:
+    image: mongo:6
+    container_name: mongo-primary
+    command: mongod --replSet rs0 --bind_ip_all
+    ports:
+      - "27017:27017"
+
+  mongo-secondary1:
+    image: mongo:6
+    container_name: mongo-secondary1
+    command: mongod --replSet rs0 --bind_ip_all
+    ports:
+      - "27018:27017"
+
+  mongo-secondary2:
+    image: mongo:6
+    container_name: mongo-secondary2
+    command: mongod --replSet rs0 --bind_ip_all
+    ports:
+      - "27019:27017"
