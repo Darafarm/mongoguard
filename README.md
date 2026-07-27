@@ -15,7 +15,31 @@ Nobody told them because nobody measured it on their specific infrastructure.
 MongoGuard measures it first.
 
 ---
+## Charts and Diagrams
 
+**Figure 1 — Infrastructure Architecture**
+![Architecture](assets/figure1_architecture.png)
+
+**Figure 2 — Production Readiness Score**
+![Score Breakdown](assets/figure2_score_breakdown.png)
+
+**Figure 3 — Write Concern Cost**
+![Write Concern](assets/figure3_write_concern.png)
+
+**Figure 4 — Replication Lag**
+![Replication Lag](assets/figure4_replication_lag.png)
+
+**Figure 5 — Election Time Timeline**
+![Election Timeline](assets/figure5_election_timeline.png)
+
+**Figure 6 — Read Scaling**
+![Read Scaling](assets/figure6_read_scaling.png)
+
+**Figure 7 — Shard Key Distribution**
+![Shard Key](assets/figure7_shard_key.png)
+
+**Figure 8 — Failure Under Realistic Load**
+![Failure Under Load](assets/figure8_failure_under_load.png)
 ## Infrastructure
 
 Three AWS EC2 t3.micro instances in us-east-1, same availability zone, running MongoDB 6.0 in a replica set named `rs0`.
