@@ -21,7 +21,7 @@ MongoGuard measures it first.
 ![Architecture](assets/figure1_architecture.png)
 
 **Figure 2 — Production Readiness Score**
-![Score Breakdown](assets/figure2_score_breakdown.png)
+![Score Breakdown](assets/figure2_score.png)
 
 **Figure 3 — Write Concern Cost**
 ![Write Concern](assets/figure3_write_concern.png)
@@ -39,7 +39,7 @@ MongoGuard measures it first.
 ![Shard Key](assets/figure7_shard_key.png)
 
 **Figure 8 — Failure Under Realistic Load**
-![Failure Under Load](assets/figure8_failure_under_load.png)
+![Failure Under Load](assets/figure8.png)
 ## Infrastructure
 
 Three AWS EC2 t3.micro instances in us-east-1, same availability zone, running MongoDB 6.0 in a replica set named `rs0`.
