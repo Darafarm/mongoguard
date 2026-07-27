@@ -60,7 +60,7 @@ Peak load    (5,000 docs): insert 0.41s  → lag 0.44s  → overhead 0.03s
 Burst load  (10,000 docs): insert 0.83s  → lag 0.88s  → overhead 0.06s
 ```
 
-The overhead stays at 50–60ms regardless of insert volume. MongoDB's oplog replication is streaming and pipelined — secondaries tail the oplog continuously rather than waiting for the primary to finish. By the time the last document is inserted, secondaries have already applied most preceding documents. Only the final batch needs catch-up time.
+The overhead stays at 50–60ms regardless of insert volume. MongoDB's oplog replication is streaming and pipelined; secondaries tail the oplog continuously rather than waiting for the primary to finish. By the time the last document is inserted, secondaries have already applied most preceding documents. Only the final batch needs catch-up time.
 
 **Secondary reads are safe for non-critical queries. Staleness window is under 60ms on this infrastructure.**
 
