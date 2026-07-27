@@ -30,7 +30,7 @@ MongoGuard measures it first.
 ![Replication Lag](assets/figure4_replication_lag.png)
 
 **Figure 5 — Election Time Timeline**
-![Election Timeline](assets/figure5_election_timeline.png)
+![Election Timeline](assets/figure5_election.png)
 
 **Figure 6 — Read Scaling**
 ![Read Scaling](assets/figure6_read_scaling.png)
