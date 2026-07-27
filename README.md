@@ -8,7 +8,7 @@ Existing monitoring tools alert you after problems occur. MongoGuard causes the 
 
 ## The Problem This Solves
 
-A team deploys MongoDB on AWS following the official documentation. Everything works for months. Then the primary server crashes at 2am. The documentation says elections take 10–15 seconds. The actual election takes 62 seconds. During those 62 seconds, write failures accumulate and the application is down.
+A team deploys MongoDB on AWS following the official documentation. Everything works for months. Then the primary server crashes at 2am. The documentation says elections take 10-15 seconds. The actual election takes 62 seconds. During those 62 seconds, write failures accumulate and the application is down.
 
 Nobody told them because nobody measured it on their specific infrastructure.
 
