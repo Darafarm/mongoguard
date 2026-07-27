@@ -32,7 +32,7 @@ Python benchmark scripts run from a local machine, connecting to the replica set
 
 ## Eight Measurements
 
-### Measurement 1 — Write Concern Cost
+### Measurement 1: Write Concern Cost
 
 **Question:** How much does stronger durability cost in write performance?
 
@@ -50,7 +50,7 @@ Score: 25/25
 
 ---
 
-### Measurement 2 — Replication Lag
+### Measurement 2: Replication Lag
 
 **Question:** After a write burst, how long until secondaries catch up? During the lag window, secondary reads return stale data.
 
@@ -68,7 +68,7 @@ Score: 20/20
 
 ---
 
-### Measurement 3 — Election Time
+### Measurement 3: Election Time
 
 **Question:** When the primary crashes instantly, how long until the cluster recovers and writes resume?
 
@@ -84,17 +84,17 @@ Write failures:               17
 Expected from documentation: 10–15 seconds.
 Measured on t3.micro: 62 seconds.
 
-**Root cause: burstable CPU.** t3.micro instances share physical CPU using a credit system. The Raft consensus algorithm — which runs the election — competes for CPU credits with other workloads on the physical host. When credits are depleted, CPU is throttled to 10% of baseline. The election process that takes 12 seconds on dedicated hardware takes 62 seconds under CPU throttling.
+**Root cause: burstable CPU.** t3.micro instances share physical CPU using a credit system. The Raft consensus algorithm, which runs the election competes for CPU credits with other workloads on the physical host. When credits are depleted, CPU is throttled to 10% of baseline. The election process that takes 12 seconds on dedicated hardware takes 62 seconds under CPU throttling.
 
 On m5.large instances with dedicated CPU, election time is 10–15 seconds consistently.
 
 **Application retry logic must cover at least 67 seconds on t3.micro infrastructure. Upgrade to dedicated CPU instances for production deployments requiring fast failover.**
 
-Score: 4/20 — CRITICAL
+Score: 4/20: CRITICAL
 
 ---
 
-### Measurement 4 — Read Scaling Efficiency
+### Measurement 4: Read Scaling Efficiency
 
 **Question:** Does distributing reads across all three replica set members improve throughput?
 
@@ -102,12 +102,12 @@ Score: 4/20 — CRITICAL
 Sequential reads (one at a time):
   Primary only:  17.5s  (35ms per read)
   Distributed:   18.4s  (36ms per read)
-  Improvement:   0.95x  — no benefit
+  Improvement:   0.95x  - no benefit
 
 Concurrent reads (20 threads simultaneously):
   Primary only:  1.4s
   Distributed:   1.34s
-  Improvement:   1.04x  — marginal benefit
+  Improvement:   1.04x  - marginal benefit
 ```
 
 Sequential reads: the bottleneck is the 35ms network round trip from the local machine to AWS. The server finishes each query in under 1ms and waits 34ms for the next request. Adding more servers cannot help because the server is not the bottleneck — the network is.
@@ -116,11 +116,11 @@ Concurrent reads: all 20 requests arrive simultaneously. Now server capacity mat
 
 **Do not add secondary read routing complexity on this infrastructure. The operational cost exceeds the performance gain.**
 
-Score: 4/10 — WARNING
+Score: 4/10 - WARNING
 
 ---
 
-### Measurement 5 — Shard Key Distribution
+### Measurement 5 - Shard Key Distribution
 
 **Question:** Which field produces the most even data distribution across shards?
 
@@ -140,11 +140,11 @@ Root cause: cardinality. With only 5 distinct values, no sharding strategy can d
 
 **Never use low-cardinality fields as shard keys. Use `_id` or any high-cardinality field. For queries filtered by product, use a compound shard key: `{ product: 1, _id: 1 }`.**
 
-Score: 3/10 — CRITICAL
+Score: 3/10 - CRITICAL
 
 ---
 
-### Measurement 6 — Targeted vs Scatter-Gather Query Cost
+### Measurement 6: Targeted vs Scatter-Gather Query Cost
 
 **Question:** How much slower is querying a non-shard-key field versus the shard key?
 
@@ -155,7 +155,7 @@ product (indexed, non-shard)   41.50ms     FETCH + IXSCAN
 country (no index)             36.88ms     COLLSCAN
 ```
 
-Results show minimal difference because all 50,000 documents live on one server. There is no actual scatter-gather happening — a targeted query and a scatter-gather query hit the same machine.
+Results show minimal difference because all 50,000 documents live on one server. There is no actual scatter-gather happening; a targeted query and a scatter-gather query hit the same machine.
 
 On a real sharded cluster across availability zones, the scatter-gather penalty is approximately 10× — the mongos router must contact every shard, wait for all responses, and merge results before returning to the application. Phase 2 will measure this on real sharded infrastructure.
 
@@ -176,14 +176,14 @@ Three concurrent thread types during the election:
 
 ```
 Operation      Failures during election   Recovery
-Writes         17                         Slow — must wait for new primary
-Reads          3                          Fast — secondaries serve reads immediately
-Aggregations   2                          Fast — secondaries serve aggregations
+Writes         17                         Slow - must wait for new primary
+Reads          3                          Fast - secondaries serve reads immediately
+Aggregations   2                          Fast - secondaries serve aggregations
 ```
 
-Reads and aggregations use the replica set URI — pymongo automatically routes them to surviving secondaries when the primary dies. Secondaries stay operational throughout the election. Only three reads failed in the brief window before pymongo discovered the secondaries.
+Reads and aggregations use the replica set URI; pymongo automatically routes them to surviving secondaries when the primary dies. Secondaries stay operational throughout the election. Only three reads failed in the brief window before pymongo discovered the secondaries.
 
-Writes use `directConnection=true` to the primary — when the primary dies, writes have nowhere to go. All 17 failures occurred during the 62-second election window.
+Writes use `directConnection=true` to the primary - when the primary dies, writes have nowhere to go. All 17 failures occurred during the 62-second election window.
 
 **Design separate retry strategies per operation type. Read failures: retry immediately, secondaries are available. Write failures: retry for the full election duration (67 seconds on this infrastructure).**
 
@@ -191,7 +191,7 @@ Score: 12/12
 
 ---
 
-### Measurement 8 — Configuration Recommendation Score
+### Measurement 8: Configuration Recommendation Score
 
 Translates all seven measurements into a scored production readiness report.
 
@@ -208,8 +208,8 @@ Overall               68     100    NEEDS IMPROVEMENT
 ```
 
 **Critical issues:**
-1. Election time 62s on t3.micro — upgrade to dedicated CPU instances (m5.large or larger). Expected election time: 10–15s.
-2. Shard key — country field produces 140% imbalance. Use `_id` or high-cardinality compound keys.
+1. Election time 62s on t3.micro, upgrade to dedicated CPU instances (m5.large or larger). Expected election time: 10–15s.
+2. Shard key: country field produces 140% imbalance. Use `_id` or high-cardinality compound keys.
 
 **Warning:**
 - Read scaling provides no meaningful benefit on t3.micro burstable infrastructure. Do not add secondary read routing complexity.
@@ -226,9 +226,9 @@ pymongo's replica set URI automatically routes writes to the current primary. Wh
 
 **Why `kill -9` instead of `systemctl stop`**
 
-`systemctl stop` sends SIGTERM — MongoDB shuts down gracefully over 30–120 seconds. During graceful shutdown, MongoDB remains partially responsive. Secondaries receive confusing heartbeat signals and cannot declare the primary dead until shutdown completes. This inflated early election measurements to 120+ seconds.
+`systemctl stop` sends SIGTERM; MongoDB shuts down gracefully over 30–120 seconds. During graceful shutdown, MongoDB remains partially responsive. Secondaries receive confusing heartbeat signals and cannot declare the primary dead until shutdown completes. This inflated early election measurements to 120+ seconds.
 
-`kill -9` sends SIGKILL — the process terminates instantly with no cleanup. Secondaries detect silence within 10 seconds and trigger election. This accurately simulates a real production crash: power failure, kernel panic, network disconnection.
+`kill -9` sends SIGKILL; the process terminates instantly with no cleanup. Secondaries detect silence within 10 seconds and trigger election. This accurately simulates a real production crash: power failure, kernel panic, network disconnection.
 
 **Why `systemctl mask` after the kill**
 
@@ -245,7 +245,7 @@ pip install pymongo boto3 paramiko
 aws configure  # set your AWS credentials
 ```
 
-**Session start (run every time — IPs change on restart)**
+**Session start (run every time; IPs change on restart)**
 
 ```bash
 # Start instances
@@ -278,7 +278,7 @@ python benchmark_failure_under_load.py
 python benchmark_recommendation.py
 ```
 
-**Session end — always stop instances to avoid charges**
+**Session end: always stop instances to avoid charges**
 
 ```bash
 aws ec2 stop-instances \
@@ -290,14 +290,14 @@ aws ec2 stop-instances \
 ## Files
 
 ```
-benchmark_write_concern.py        Measurement 1 — write concern overhead
-benchmark_replication_lag.py      Measurement 2 — secondary catch-up time
-benchmark_election.py             Measurement 3 — election time under hard crash
-benchmark_read_scaling.py         Measurement 4 — sequential vs concurrent reads
-benchmark_shard_key.py            Measurement 5 — shard key distribution simulation
-benchmark_scatter_gather.py       Measurement 6 — targeted vs scatter-gather queries
-benchmark_failure_under_load.py   Measurement 7 — mixed workload during election
-benchmark_recommendation.py       Measurement 8 — scored production readiness report
+benchmark_write_concern.py        Measurement 1 - write concern overhead
+benchmark_replication_lag.py      Measurement 2 - secondary catch-up time
+benchmark_election.py             Measurement 3 - election time under hard crash
+benchmark_read_scaling.py         Measurement 4 - sequential vs concurrent reads
+benchmark_shard_key.py            Measurement 5 - shard key distribution simulation
+benchmark_scatter_gather.py       Measurement 6 - targeted vs scatter-gather queries
+benchmark_failure_under_load.py   Measurement 7 - mixed workload during election
+benchmark_recommendation.py       Measurement 8 - scored production readiness report
 results.csv                       All measurement data
 mongoguard_report.json            Full recommendation report
 ```
@@ -313,7 +313,7 @@ The current measurements characterize behavior on t3.micro same-AZ infrastructur
 - Real scatter-gather penalty measurement on true distributed infrastructure
 - Write concern overhead comparison: same-AZ vs cross-AZ vs cross-region
 
-Expected findings: election time drops to 10–15s on dedicated CPU. Write concern overhead rises to 15–30% cross-AZ. Scatter-gather penalty becomes visible at ~10× vs targeted queries.
+Expected findings: election time drops to 10-15s on dedicated CPU. Write concern overhead rises to 15-30% cross-AZ. Scatter-gather penalty becomes visible at ~10× vs targeted queries.
 
 ---
 
